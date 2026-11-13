@@ -98,6 +98,18 @@ Notes:
 
 `client/vercel.json` also rewrites SPA routes so deep links work.
 
+## Live deployment (already done)
+
+| Thing | Value |
+| --- | --- |
+| Frontend | https://pratham-temple-escape.vercel.app |
+| Backend | https://pratham-api.onrender.com |
+| Render service id | `srv-dbrfo26c6qcc73dp73mg` |
+| Key Value | `red-dbr83b5g1s2s73fn8kq0` (pratham, singapore, free) |
+
+Verified live: `mode:supabase`, `redisReady:true`, `geminiConfigured:true`,
+signup -> JWT -> sync -> leaderboard all working against real Postgres.
+
 ## 3. Close the loop
 
 1. Set `CLIENT_URL` on Render to the Vercel domain (CORS), redeploy if needed.
