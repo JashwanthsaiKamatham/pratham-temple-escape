@@ -40,8 +40,14 @@ GEMINI_API_KEY=<gemini key>
 GEMINI_MODELS=gemini-3.5-flash,gemini-3.1-flash-lite,gemini-flash-latest,gemini-3.8-flash,gemini-3.7-flash
 JWT_SECRET=<openssl rand -hex 32>
 CLIENT_URL=https://<vercel app>.vercel.app
+REDIS_URL=redis://red-dbr83b5g1s2s73fn8kq0:6379
 PORT=10000
 ```
+
+> `REDIS_URL` is the **internal** URL from your Render Key Value instance. It only
+> resolves from services inside your Render account — that is expected, and it is
+> why it could not be tested from the build sandbox. Use the *external* URL
+> (`rediss://…`) only if you need to reach the cache from your own machine.
 
 Notes:
 - Render can reach Supabase over Postgres directly, so `DATABASE_URL` should let the

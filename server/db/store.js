@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { ensureSupabaseTables } = require('./migrate');
 const { createSupabaseAdmin, isSupabaseConfigured } = require('./supabaseClient');
+const { getCache } = require('./cacheRegistry');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const LOCAL_DB_FILE = path.join(DATA_DIR, 'local_db.json');
@@ -205,7 +206,17 @@ async function updateProfile(id, updates) {
   return sanitizeProfile(db.profiles[idx]);
 }
 
+const LEADERBOARD_TTL = 20;
+
 async function getLeaderboard(limit = 10) {
+  const cache = getCache();
+  const key = `pratham:leaderboard:${limit}`;
+
+  if (cache.enabled) {
+    const hit = await cache.getJson(key);
+    if (Array.isArray(hit)) return hit;
+  }
+
   let players = [];
   if (supabaseReady) {
     const { data, error } = await supabaseAdmin
@@ -231,7 +242,15 @@ async function getLeaderboard(limit = 10) {
     .sort((a, b) => Number(b.high_score || 0) - Number(a.high_score || 0))
     .slice(0, limit);
 
+  if (cache.enabled) await cache.setJson(key, merged, LEADERBOARD_TTL);
   return merged;
+}
+
+/** Drop cached leaderboards after any write that could change the ranking. */
+async function invalidateLeaderboard() {
+  const cache = getCache();
+  if (!cache.enabled) return;
+  await cache.del('pratham:leaderboard:10', 'pratham:leaderboard:5', 'pratham:leaderboard:20');
 }
 
 // ---------- ITEMS (CRUD) ----------
@@ -357,4 +376,6 @@ module.exports = {
   createItem,
   updateItem,
   deleteItem
+,
+  invalidateLeaderboard
 };

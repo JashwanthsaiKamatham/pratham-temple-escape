@@ -250,6 +250,16 @@ export default function Dashboard({ onPlay, onOpenAuth, flash }) {
               </span>
             </li>
             <li className="flex items-center justify-between gap-3">
+              <span className="text-slate-500">Cache</span>
+              <span
+                className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${
+                  health?.redisReady ? 'bg-rose-50 text-rose-700' : 'bg-slate-50 text-slate-500'
+                }`}
+              >
+                {health?.redisReady ? 'Redis' : health?.redisConfigured ? 'Unreachable' : 'Not set'}
+              </span>
+            </li>
+            <li className="flex items-center justify-between gap-3">
               <span className="text-slate-500">Cloud save</span>
               <span
                 className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${

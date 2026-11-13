@@ -57,7 +57,7 @@ Without Supabase keys the API automatically falls back to a local JSON store
 
 | Method | Route | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/health` | status + which store/Gemini mode is active |
+| `GET` | `/api/health` | status of the store, Gemini and Redis |
 | `POST` | `/api/auth/signup` | create profile (bcrypt hash, 30-day JWT) |
 | `POST` | `/api/auth/login` | log in |
 | `GET` | `/api/auth/me` | restore session across devices |
@@ -87,7 +87,26 @@ chain therefore either feels broken or takes ~50 s. Instead `routes/ai.js` runs 
 * if nothing answers within 16 s, the deterministic local Temple Oracle replies, so
   the UI never hangs or shows an error.
 
-Typical observed latency: **4–11 s** with a live model, **<100 ms** on fallback.
+Typical observed latency: **4–11 s** with a live model, **<100 ms** on fallback, and
+**~12 ms** when the answer is already cached in Redis.
+
+## Caching (optional Redis)
+
+`REDIS_URL` is entirely optional — without it the API behaves identically, just
+slower. When set, two things are cached:
+
+| Key | TTL | Invalidation |
+| --- | --- | --- |
+| `pratham:leaderboard:<limit>` | 20 s | dropped after every run sync |
+| `pratham:ai:<sha1 of mode+prompt+context>` | 6 h | natural expiry |
+
+The AI cache is the useful one: repeat questions ("give me a tip") cost zero
+Gemini quota, which matters because the free tier returns `429` under load.
+Measured: **3061 ms → 12 ms** on the second identical request.
+
+`server/db/cache.js` is a small dependency-free RESP client (GET/SET/DEL/PING).
+It supports `redis://` and `rediss://` (TLS), and every failure path fails safe —
+an unreachable Redis is logged once at boot and the API keeps running.
 
 ## Environment (`server/.env`)
 

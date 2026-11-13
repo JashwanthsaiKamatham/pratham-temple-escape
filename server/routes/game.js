@@ -3,7 +3,8 @@ const {
   findProfileById,
   updateProfile,
   sanitizeProfile,
-  getLeaderboard
+  getLeaderboard,
+  invalidateLeaderboard
 } = require('../db/store');
 const { requireAuth } = require('../middleware/auth');
 
@@ -93,6 +94,9 @@ router.put('/sync', requireAuth, async (req, res) => {
       unlocked_outfits: mergedUnlocked,
       equipped_outfit: nextEquipped
     });
+
+    // A new score can reorder the board: drop the cache only after the write.
+    await invalidateLeaderboard();
 
     return res.json({ user: updated });
   } catch (err) {

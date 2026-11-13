@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const { initStore, getStatus } = require('./db/store');
+const { initCache, getCache } = require('./db/cacheRegistry');
 
 const authRoutes = require('./routes/auth');
 const gameRoutes = require('./routes/game');
@@ -43,10 +44,13 @@ app.use(express.json({ limit: '1mb' }));
 
 // Health & connection status check
 app.get('/api/health', (req, res) => {
+  const cache = getCache();
   res.json({
     ok: true,
     app: 'PRATHAM – THE TEMPLE ESCAPE API',
     timestamp: new Date().toISOString(),
+    redisConfigured: Boolean(process.env.REDIS_URL),
+    redisReady: cache.enabled,
     ...getStatus()
   });
 });
@@ -65,11 +69,25 @@ app.get('/', (req, res) => {
   });
 });
 
-initStore()
-  .catch((err) => console.error('[Store Init Error]:', err))
-  .finally(() => {
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[Server] PRATHAM Backend listening on http://0.0.0.0:${PORT}`);
-      console.log('[Server] Store status:', getStatus());
-    });
+(async () => {
+  try {
+    await initStore();
+  } catch (err) {
+    console.error('[Store Init Error]:', err);
+  }
+
+  // Optional Redis. Never blocks the API: if it is unreachable the app runs
+  // exactly as before, just without the leaderboard / AI response cache.
+  try {
+    const cache = await initCache(process.env.REDIS_URL);
+    console.log('[Cache]', cache.enabled ? `enabled - ${cache.reason}` : `disabled - ${cache.reason}`);
+  } catch (err) {
+    console.warn('[Cache] init failed:', err.message);
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[Server] PRATHAM Backend listening on http://0.0.0.0:${PORT}`);
+    console.log('[Server] Store status:', getStatus());
+    console.log('[Server] Cache status:', getCache().status());
   });
+})();

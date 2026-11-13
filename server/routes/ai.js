@@ -1,4 +1,5 @@
 const express = require('express');
+const { getCache } = require('../db/cacheRegistry');
 
 const router = express.Router();
 
@@ -212,6 +213,25 @@ function generateWithHedging({ apiKey, systemPrompt, userText, models, hedgeDela
 }
 
 // POST /api/ai/generate  (Gemini key never leaves the server)
+const crypto = require('crypto');
+
+/** Cache key: identical prompt + mode + player snapshot reuses one Gemini call. */
+function cacheKeyFor(mode, userText, context) {
+  const ctx = context && typeof context === 'object' ? context : {};
+  const snapshot = JSON.stringify(
+    Object.keys(ctx)
+      .sort()
+      .reduce((acc, k) => {
+        acc[k] = ctx[k];
+        return acc;
+      }, {})
+  );
+  const digest = crypto.createHash('sha1').update(`${mode || 'coach'}|${userText}|${snapshot}`).digest('hex');
+  return `pratham:ai:${digest}`;
+}
+
+const AI_CACHE_TTL_SECONDS = 60 * 60 * 6;
+
 router.post('/generate', async (req, res) => {
   const { prompt = '', mode = 'coach', context = {} } = req.body || {};
   const apiKey = (process.env.GEMINI_API_KEY || '').trim();
@@ -229,6 +249,16 @@ router.post('/generate', async (req, res) => {
     String(prompt || '').trim() ||
     'Give me three tactical tips for my next temple run.';
 
+  const cache = getCache();
+  const cacheKey = cacheKeyFor(mode, userText, context);
+
+  if (cache.enabled) {
+    const hit = await cache.getJson(cacheKey);
+    if (hit && hit.result) {
+      return res.json({ ...hit, cached: true });
+    }
+  }
+
   const race = await generateWithHedging({
     apiKey,
     systemPrompt,
@@ -237,11 +267,13 @@ router.post('/generate', async (req, res) => {
   });
 
   if (race.ok) {
-    return res.json({
+    const payload = {
       result: race.text,
       provider: `gemini (${race.model})`,
       attempts: race.attempts
-    });
+    };
+    if (cache.enabled) await cache.setJson(cacheKey, payload, AI_CACHE_TTL_SECONDS);
+    return res.json(payload);
   }
 
   console.warn('[Gemini] falling back to local oracle:', JSON.stringify(race.attempts));
