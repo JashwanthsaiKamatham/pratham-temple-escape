@@ -1,0 +1,70 @@
+# Render blueprint for PRATHAM – The Temple Escape
+#
+# Deploy: Render Dashboard -> New -> Blueprint -> pick this repo.
+# Render reads this file, creates the web service and the Key Value instance,
+# and pre-fills every non-secret variable.
+#
+# Secrets marked `sync: false` are NOT stored here. Render prompts for them on
+# first deploy — paste the values from server/.env. They are never committed.
+
+services:
+  # ---------------------------------------------------------------------------
+  # API + Key Value
+  # ---------------------------------------------------------------------------
+  - type: redis
+    name: pratham-cache
+    plan: free
+    region: singapore
+    ipAllowList: [] # empty = reachable only from services in this account
+    maxmemoryPolicy: allkeys-lru
+
+  - type: web
+    name: pratham-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # --- wired automatically ---------------------------------------------
+      - key: NODE_VERSION
+        value: "20"
+      - key: PORT
+        value: "10000"
+      # Inject the Key Value internal URL directly into REDIS_URL.
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: pratham-cache
+          property: connectionString
+
+      # --- secrets: Render will prompt for these --------------------------
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_DB_PASSWORD
+        sync: false
+      - key: SUPABASE_ACCESS_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+
+      # --- plain config ---------------------------------------------------
+      - key: SUPABASE_REGION
+        value: ap-south-1
+      # Only used if the pooler username is not "postgres". Usually leave blank:
+      # the server builds the connection string from SUPABASE_DB_PASSWORD.
+      - key: DATABASE_URL
+        value: ""
+      - key: GEMINI_MODELS
+        value: gemini-3.5-flash,gemini-3.1-flash-lite,gemini-flash-latest,gemini-3.8-flash,gemini-3.7-flash

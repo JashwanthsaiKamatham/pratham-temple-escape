@@ -18,6 +18,20 @@ git push -u origin main
 
 ## 1. Backend → Render
 
+### Option A — one click with the blueprint (recommended)
+
+`render.yaml` in the repo root declares the web service **and** the Key Value
+instance. Render wires `REDIS_URL` automatically from the cache's internal
+connection string, so you never paste that URL.
+
+1. Render Dashboard → **New** → **Blueprint**
+2. Pick `JashwanthsaiKamatham/pratham-temple-escape`
+3. Render prompts for the 8 secrets (`SUPABASE_*`, `GEMINI_API_KEY`,
+   `JWT_SECRET`, `CLIENT_URL`) — paste the values from `server/.env`
+4. Apply
+
+### Option B — configure by hand
+
 | Setting | Value |
 | --- | --- |
 | Root directory | `server` |

@@ -127,7 +127,8 @@ RLS policies) on boot as soon as Supabase credentials are present — no manual 
 
 ## Deploy
 
-Two independent services, one repo.
+Two independent services, one repo. `render.yaml` at the repo root deploys the
+backend and its Key Value cache in one click — Render fills in `REDIS_URL` for you.
 
 **1. Backend → Render**
 
