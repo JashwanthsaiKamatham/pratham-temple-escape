@@ -271,7 +271,11 @@ export default function Dashboard({ onPlay, onOpenAuth, flash }) {
             </li>
           </ul>
 
-          {health?.message ? (
+          {healthError ? (
+            <p className="mt-4 rounded-2xl bg-rose-50 p-3 text-[11px] font-medium leading-relaxed text-rose-700 ring-1 ring-rose-100">
+              <b>Backend unreachable.</b> {healthError}
+            </p>
+          ) : health?.message ? (
             <p className="mt-4 rounded-2xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-500">
               {health.message}
             </p>

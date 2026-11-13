@@ -81,7 +81,22 @@ Notes:
 | Output directory | `dist` |
 | Env var | `VITE_API_BASE_URL=https://<service>.onrender.com` |
 
-`client/vercel.json` already rewrites SPA routes.
+### Two ways the front end can reach the API
+
+1. **Vercel proxy (default, no env var needed).** `client/vercel.json` rewrites
+   `/api/:path*` to the Render service, so the bundle can call same-origin
+   `/api/...` and nothing needs configuring. Useful if you just want it working.
+2. **Direct (recommended for production).** Set `VITE_API_BASE_URL` to the Render
+   URL. Calls go straight to Express, skipping a proxy hop.
+
+> **Gotcha that bit us once:** if `/api/...` is answered by the SPA catch-all
+> instead of the API, `curl https://<app>.vercel.app/api/health` returns
+> `text/html` instead of JSON and the Hub shows *Backend API: CHECKING*,
+> *Database: LOCAL JSON*. The rewrite above prevents it; `lib/api.js` now also
+> detects an HTML response and raises a readable error instead of failing inside
+> `JSON.parse`.
+
+`client/vercel.json` also rewrites SPA routes so deep links work.
 
 ## 3. Close the loop
 
