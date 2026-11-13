@@ -1,0 +1,36 @@
+# Environment variables & secrets (NEVER commit)
+.env
+.env.*
+!.env.example
+server/.env
+client/.env
+
+# Dependencies
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# Build outputs
+dist/
+client/dist/
+build/
+
+# Local runtime fallback data & logs
+server/data/local_db.json
+*.log
+npm-debug.log*
+.DS_Store
+
+# Test / tooling artefacts
+.shots/
+tmp/
+*.tmp
+playwright-report/
+test-results/
+.cache/
+
+# Sandbox/tooling noise
+.npm/
+.npx/
+.sudo_as_admin_successful
+.local/

@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background-color: #F8FAFC;
+  overscroll-behavior: none;
+}
+
+.game-touch-surface {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
+.glass-hud {
+  background: rgba(248, 250, 252, 0.86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+@keyframes floatPopup {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -26px) scale(1.12);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -52px) scale(0.96);
+  }
+}
+
+.animate-popup {
+  animation: floatPopup 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

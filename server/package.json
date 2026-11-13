@@ -1,0 +1,24 @@
+{
+  "name": "pratham-temple-escape-server",
+  "version": "1.0.0",
+  "description": "Backend API for PRATHAM - The Temple Escape (Express + Supabase + Gemini AI + Bcrypt Auth)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "migrate": "node db/migrate.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.3",
+    "ws": "^8.23.0"
+  }
+}
